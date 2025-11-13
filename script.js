@@ -75,59 +75,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagsPlaceholder = document.getElementById('tags-placeholder');
     const copyTagsBtn = document.getElementById('copy-tags-btn');
 
-    generateTagsBtn.addEventListener('click', async () => {
-        const keywords = tagsInput.value.split(',')
-            .map(kw => kw.trim())
-            .filter(kw => kw.length > 0);
+    const hashtagContexts = {
+        moda: {
+            keywords: ['roupa', 'moda', 'estilo', 'vestido', 'calça', 't-shirt', 'look', 'fashion', 'acessório', 'sapatos'],
+            hashtags: ['#moda', '#fashion', '#estilo', '#lookdodia', '#modafeminina', '#modamasculina', '#instafashion', '#tendencia', '#acessorios', '#look', '#roupas']
+        },
+        comida: {
+            keywords: ['comida', 'restaurante', 'prato', 'receita', 'delicioso', 'saboroso', 'fome', 'jantar', 'almoço', 'foodie'],
+            hashtags: ['#comida', '#foodie', '#instafood', '#gastronomia', '#restaurante', '#delicia', '#yummy', '#foodlover', '#receitas', '#jantar', '#almoço']
+        },
+        viagem: {
+            keywords: ['viagem', 'viajar', 'férias', 'turismo', 'destino', 'mundo', 'praia', 'cidade', 'natureza', 'travel'],
+            hashtags: ['#viagem', '#travel', '#turismo', '#ferias', '#viajar', '#instatravel', '#travelgram', '#amoviajar', '#natureza', '#praia', '#destinos']
+        },
+        fitness: {
+            keywords: ['fitness', 'ginásio', 'treino', 'saúde', 'exercício', 'fit', 'dieta', 'musculação', 'corrida', 'gym'],
+            hashtags: ['#fitness', '#treino', '#gym', '#saude', '#vidasaudavel', '#foco', '#dieta', '#musculação', '#fit', '#lifestyle', '#corrida']
+        },
+        negocios: {
+            keywords: ['negócios', 'business', 'marketing', 'empreendedorismo', 'sucesso', 'carreira', 'dinheiro', 'trabalho', 'dicas'],
+            hashtags: ['#negocios', '#business', '#marketingdigital', '#empreendedorismo', '#sucesso', '#carreira', '#motivação', '#marketing', '#dinheiro', '#foco']
+        }
+    };
 
-        if (keywords.length === 0) {
-            tagsPlaceholder.textContent = 'Por favor, insira pelo menos uma palavra-chave.';
+    generateTagsBtn.addEventListener('click', () => {
+        const userInput = tagsInput.value.toLowerCase();
+        if (!userInput) {
+            tagsPlaceholder.textContent = 'Por favor, insira uma descrição.';
             tagsResultBox.style.display = 'block';
             copyTagsBtn.style.display = 'none';
             return;
         }
 
-        // Feedback de loading
-        const originalButtonText = generateTagsBtn.textContent;
-        generateTagsBtn.textContent = 'A carregar...';
-        generateTagsBtn.disabled = true;
-        tagsResultBox.style.display = 'none';
+        let generatedHashtags = new Set();
 
-        try {
-            const synonymPromises = keywords.map(kw =>
-                fetch(`https://api.datamuse.com/words?rel_syn=${kw.replace(/\s+/g, '+')}`)
-                    .then(response => response.json())
-            );
-
-            const synonymArrays = await Promise.all(synonymPromises);
-
-            let hashtags = new Set(keywords.map(kw => `#${kw.replace(/\s+/g, '').toLowerCase()}`));
-
-            synonymArrays.forEach(synonymArray => {
-                synonymArray.forEach(synonym => {
-                    hashtags.add(`#${synonym.word.replace(/\s+/g, '').toLowerCase()}`);
-                });
-            });
-            
-            if (hashtags.size === 0) {
-                 tagsPlaceholder.textContent = 'Não foram encontrados sinónimos. Tente outras palavras.';
-            } else {
-                 tagsPlaceholder.textContent = Array.from(hashtags).join(' ');
+        // Adiciona hashtags dos contextos
+        for (const context in hashtagContexts) {
+            const { keywords, hashtags } = hashtagContexts[context];
+            if (keywords.some(kw => userInput.includes(kw))) {
+                hashtags.forEach(tag => generatedHashtags.add(tag));
             }
-           
-            tagsResultBox.style.display = 'block';
-            copyTagsBtn.style.display = 'flex';
-
-        } catch (error) {
-            console.error('Erro ao buscar sinónimos:', error);
-            tagsPlaceholder.textContent = 'Ocorreu um erro ao buscar sinónimos. Verifique a sua conexão à internet.';
-            tagsResultBox.style.display = 'block';
-            copyTagsBtn.style.display = 'none';
-        } finally {
-            // Restaura o botão
-            generateTagsBtn.textContent = originalButtonText;
-            generateTagsBtn.disabled = false;
         }
+
+        // Adiciona hashtags a partir das palavras do utilizador
+        const userWords = userInput.split(/\s+/).filter(word => word.length > 3);
+        userWords.forEach(word => {
+            generatedHashtags.add(`#${word}`);
+        });
+
+
+        if (generatedHashtags.size === 0) {
+            tagsPlaceholder.textContent = 'Não foram encontradas sugestões. Tente descrever o seu post com mais detalhes sobre tópicos como moda, comida, viagem, etc.';
+            copyTagsBtn.style.display = 'none';
+        } else {
+            tagsPlaceholder.textContent = Array.from(generatedHashtags).join(' ');
+            copyTagsBtn.style.display = 'flex';
+        }
+        
+        tagsResultBox.style.display = 'block';
     });
 
     copyTagsBtn.addEventListener('click', () => {
