@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagsPlaceholder = document.getElementById('tags-placeholder');
     const copyTagsBtn = document.getElementById('copy-tags-btn');
 
-    generateTagsBtn.addEventListener('click', () => {
+    generateTagsBtn.addEventListener('click', async () => {
         const keywords = tagsInput.value.split(',')
             .map(kw => kw.trim())
             .filter(kw => kw.length > 0);
@@ -87,23 +87,47 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let hashtags = new Set();
+        // Feedback de loading
+        const originalButtonText = generateTagsBtn.textContent;
+        generateTagsBtn.textContent = 'A carregar...';
+        generateTagsBtn.disabled = true;
+        tagsResultBox.style.display = 'none';
 
-        keywords.forEach(kw => {
-            const baseHashtag = kw.replace(/\s+/g, '').toLowerCase();
-            hashtags.add(`#${baseHashtag}`);
+        try {
+            const synonymPromises = keywords.map(kw =>
+                fetch(`https://api.datamuse.com/words?rel_syn=${kw.replace(/\s+/g, '+')}`)
+                    .then(response => response.json())
+            );
 
-            const words = kw.split(' ').filter(w => w.length > 0);
-            if (words.length > 1) {
-                words.forEach(word => {
-                    hashtags.add(`#${word.toLowerCase()}`);
+            const synonymArrays = await Promise.all(synonymPromises);
+
+            let hashtags = new Set(keywords.map(kw => `#${kw.replace(/\s+/g, '').toLowerCase()}`));
+
+            synonymArrays.forEach(synonymArray => {
+                synonymArray.forEach(synonym => {
+                    hashtags.add(`#${synonym.word.replace(/\s+/g, '').toLowerCase()}`);
                 });
+            });
+            
+            if (hashtags.size === 0) {
+                 tagsPlaceholder.textContent = 'Não foram encontrados sinónimos. Tente outras palavras.';
+            } else {
+                 tagsPlaceholder.textContent = Array.from(hashtags).join(' ');
             }
-        });
+           
+            tagsResultBox.style.display = 'block';
+            copyTagsBtn.style.display = 'flex';
 
-        tagsPlaceholder.textContent = Array.from(hashtags).join(' ');
-        tagsResultBox.style.display = 'block';
-        copyTagsBtn.style.display = 'flex';
+        } catch (error) {
+            console.error('Erro ao buscar sinónimos:', error);
+            tagsPlaceholder.textContent = 'Ocorreu um erro ao buscar sinónimos. Verifique a sua conexão à internet.';
+            tagsResultBox.style.display = 'block';
+            copyTagsBtn.style.display = 'none';
+        } finally {
+            // Restaura o botão
+            generateTagsBtn.textContent = originalButtonText;
+            generateTagsBtn.disabled = false;
+        }
     });
 
     copyTagsBtn.addEventListener('click', () => {
