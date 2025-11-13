@@ -5,9 +5,10 @@ body {
     background-color: #f0f2f5;
     color: #333;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    flex-direction: column; /* Empilha os containers verticalmente */
+    align-items: center; /* Centraliza os containers */
+    padding: 20px 0; /* Adiciona espaço no topo e no fundo */
+    gap: 20px; /* Adiciona espaço entre os containers */
     margin: 0;
 }
 
@@ -21,7 +22,7 @@ body {
     width: 90%;
 }
 
-h1 {
+h1, h2 {
     color: #1c1e21;
     margin-bottom: 20px;
 }
@@ -55,7 +56,7 @@ h1 {
     font-weight: bold;
 }
 
-#idea-box {
+#idea-box, #tags-result-box {
     background-color: #f7f7f7;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -66,9 +67,10 @@ h1 {
     align-items: center;
     margin-bottom: 30px;
     position: relative; /* Necessário para posicionar o botão de cópia */
+    word-wrap: break-word;
 }
 
-#copy-btn {
+#copy-btn, #copy-tags-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -84,21 +86,22 @@ h1 {
     transition: all 0.2s ease-in-out;
 }
 
-#copy-btn:hover {
+#copy-btn:hover, #copy-tags-btn:hover {
     opacity: 1;
     background-color: #e0e0e0;
 }
 
-#copy-btn svg {
+#copy-btn svg, #copy-tags-btn svg {
     fill: #333;
 }
 
-#idea-placeholder {
+#idea-placeholder, #tags-placeholder {
     font-size: 1.1em;
     color: #555;
+    white-space: pre-wrap; /* Mantém a formatação das hashtags */
 }
 
-#generate-btn {
+#generate-btn, #generate-tags-btn {
     background-color: #007bff;
     color: white;
     border: none;
@@ -110,6 +113,15 @@ h1 {
     transition: background-color 0.3s ease;
 }
 
-#generate-btn:hover {
+#generate-btn:hover, #generate-tags-btn:hover {
     background-color: #0056b3;
+}
+
+#tags-input {
+    width: calc(100% - 40px);
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }

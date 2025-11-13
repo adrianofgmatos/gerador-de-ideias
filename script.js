@@ -63,3 +63,57 @@ generateBtn.addEventListener('click', generateIdea);
 
 // Gera uma ideia inicial ao carregar a página
 generateIdea();
+
+
+// --- GERADOR DE HASHTAGS ---
+
+const tagsInput = document.getElementById('tags-input');
+const generateTagsBtn = document.getElementById('generate-tags-btn');
+const tagsResultBox = document.getElementById('tags-result-box');
+const tagsPlaceholder = document.getElementById('tags-placeholder');
+const copyTagsBtn = document.getElementById('copy-tags-btn');
+
+generateTagsBtn.addEventListener('click', () => {
+    const keywords = tagsInput.value.split(',')
+        .map(kw => kw.trim())
+        .filter(kw => kw.length > 0);
+
+    if (keywords.length === 0) {
+        tagsPlaceholder.textContent = 'Por favor, insira pelo menos uma palavra-chave.';
+        tagsResultBox.style.display = 'block';
+        copyTagsBtn.style.display = 'none';
+        return;
+    }
+
+    let hashtags = new Set(); // Usa um Set para evitar duplicados
+
+    keywords.forEach(kw => {
+        // Remove espaços e caracteres especiais para a hashtag principal
+        const baseHashtag = kw.replace(/\s+/g, '').toLowerCase();
+        hashtags.add(`#${baseHashtag}`);
+
+        // Adiciona variações se a palavra-chave tiver várias palavras
+        const words = kw.split(' ').filter(w => w.length > 0);
+        if (words.length > 1) {
+            words.forEach(word => {
+                hashtags.add(`#${word.toLowerCase()}`);
+            });
+        }
+    });
+
+    tagsPlaceholder.textContent = Array.from(hashtags).join(' ');
+    tagsResultBox.style.display = 'block';
+    copyTagsBtn.style.display = 'flex';
+});
+
+copyTagsBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(tagsPlaceholder.textContent).then(() => {
+        const originalContent = copyTagsBtn.innerHTML;
+        copyTagsBtn.innerHTML = 'Copiado!';
+        setTimeout(() => {
+            copyTagsBtn.innerHTML = originalContent;
+        }, 2000);
+    }).catch(err => {
+        console.error('Erro ao copiar hashtags: ', err);
+    });
+});
